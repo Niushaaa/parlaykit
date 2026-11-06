@@ -1,0 +1,21 @@
+{
+  "name": "parlaykit-quoter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Prices parlays from live prediction-market prices and signs EIP-712 quotes for ParlayEngine",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "demo": "DEMO=1 node src/server.js",
+    "test": "node --test test/unit.test.mjs",
+    "e2e": "node test/e2e.local.mjs",
+    "resolve": "node scripts/resolve.js",
+    "keygen": "node -e \"const {Wallet}=require('ethers');const w=Wallet.createRandom();console.log('QUOTER_PRIVATE_KEY='+w.privateKey);console.log('QUOTE_SIGNER='+w.address)\""
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.4"
+  },
+  "engines": { "node": ">=18" }
+}
