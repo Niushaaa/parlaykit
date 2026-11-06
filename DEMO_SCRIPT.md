@@ -49,5 +49,5 @@ Run the same flow live on the **demo venue** (it doesn't depend on venue wifi or
 - **"Isn't independence wrong for correlated markets?"** Yes. That's why v1 blocks same-event legs and charges +1% per leg. ParlayMarket learns pairwise correlations from parlay flow, and parlay trades are exactly what identify those correlations.
 - **"Why would LPs deposit?"** The house edge is 2% + 1% per extra leg on every parlay, and risk limits are enforced on-chain. LP P&L is the spread between offered and true odds.
 - **"Why not just list parlays on Polymarket?"** Combinatorial listings fragment liquidity. One vault backs every combination with no new markets.
-- **"What did you build vs. reuse?"** Built: engine, vault, quoter, extension, demo venue. Reused: OpenZeppelin, ethers, Polymarket public APIs. AI use is documented in AI_USAGE.md.
+- **"What did you build vs. reuse?"** Built: engine, vault, quoter, extension, demo venue. Reused: OpenZeppelin, ethers, Polymarket public APIs.
 - **Inspiration / tools / challenges:** sportsbook parlays meet prediction markets. Hardest parts: settlement that handles partial resolutions, and keeping off-chain and on-chain pricing bit-identical.

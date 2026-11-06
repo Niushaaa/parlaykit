@@ -9,3 +9,4 @@ contracts/deployments/31337.json
 *.zip
 .DS_Store
 SUBMISSION.md
+AI_USAGE.md

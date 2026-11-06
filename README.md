@@ -187,7 +187,3 @@ Adding a venue means one adapter in `extension/adapters.js` (find slugs on the p
 - **LP timing.** Between a market resolving and someone calling `settle()`, an LP could withdraw ahead of a known win, or deposit ahead of a known loss. Mitigations: a keeper that settles on resolution, a withdrawal cooldown, or marking resolved legs to market in `totalAssets()`.
 - **No hedging.** The vault carries the risk directly. A natural extension is to hedge large parlays by buying legs on the venue.
 - Testnet only, unaudited. Parlay products may be regulated as gambling in many jurisdictions.
-
-## AI usage
-
-See [AI_USAGE.md](AI_USAGE.md).
