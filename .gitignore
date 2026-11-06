@@ -1,0 +1,10 @@
+node_modules/
+.env
+quoter/data/
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+contracts/lib/
+contracts/deployments/31337.json
+*.zip
+.DS_Store
