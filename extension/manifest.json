@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "ParlayKit — parlays for prediction markets",
+  "short_name": "ParlayKit",
+  "version": "0.1.0",
+  "description": "Combine the markets you're looking at into one parlay, priced live and backed by an on-chain LP vault.",
+  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" },
+  "action": { "default_popup": "popup.html", "default_icon": { "16": "icons/16.png", "48": "icons/48.png" } },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*",
+    "https://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://polymarket.com/*", "https://*.polymarket.com/*", "https://1inch.io/*", "https://*.1inch.io/*", "https://1inch.com/*", "https://*.1inch.com/*", "http://127.0.0.1/*", "http://localhost/*"],
+      "js": ["inpage.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://polymarket.com/*", "https://*.polymarket.com/*", "https://1inch.io/*", "https://*.1inch.io/*", "https://1inch.com/*", "https://*.1inch.com/*", "http://127.0.0.1/*", "http://localhost/*"],
+      "js": ["adapters.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [{ "resources": ["panel.css", "icons/*"], "matches": ["<all_urls>"] }]
+}

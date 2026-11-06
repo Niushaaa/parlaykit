@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="parlaykit-demo" content="1">
+<title>OpenOdds — ParlayKit demo venue</title>
+<style>
+  :root{--bg:#f6f4ef;--card:#fff;--ink:#1d1b16;--muted:#77716a;--line:#e6e1d8;--yes:#18864b;--no:#c0392b}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Georgia,"Times New Roman",serif}
+  header{display:flex;align-items:center;gap:14px;padding:18px 32px;border-bottom:1px solid var(--line);background:#fffdf8}
+  .logo{font-weight:700;font-size:22px;letter-spacing:-.02em} .logo span{color:#b5651d}
+  .banner{margin-left:auto;font:12px system-ui,sans-serif;color:var(--muted);border:1px dashed var(--line);padding:4px 10px;border-radius:999px}
+  main{max-width:1100px;margin:0 auto;padding:28px 32px 120px}
+  h1{font-size:28px;margin:0 0 4px} .sub{color:var(--muted);margin:0 0 24px;font-family:system-ui,sans-serif;font-size:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;transition:box-shadow .15s}
+  .card:hover{box-shadow:0 6px 20px rgba(0,0,0,.06)}
+  .card h3{margin:0 0 10px;font-size:17px}
+  .row{display:flex;justify-content:space-between;align-items:center;font:13px system-ui,sans-serif;padding:6px 0;border-top:1px solid var(--line)}
+  .row:first-of-type{border-top:0}
+  .p{display:flex;gap:6px} .p b{padding:3px 8px;border-radius:6px;font-weight:600}
+  .y{background:#e5f4ea;color:var(--yes)} .n{background:#fbe9e7;color:var(--no)}
+  .meta{font:12px system-ui,sans-serif;color:var(--muted);margin-top:8px}
+  .err{font:14px system-ui;color:var(--no)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Open<span>Odds</span></div>
+  <div class="banner">Fictional demo venue for ParlayKit · prices served by the quoter in DEMO mode</div>
+</header>
+<main>
+  <h1>Trending markets</h1>
+  <p class="sub">A stand-in prediction-market front page. Install the ParlayKit extension and the Parlay button appears bottom-right.</p>
+  <div class="grid" id="grid"><div class="meta">Loading markets…</div></div>
+</main>
+<script>
+  const QUOTER = new URLSearchParams(location.search).get('quoter') || 'http://127.0.0.1:8787';
+  const fmt = (p) => Math.round(p * 100) + '¢';
+  async function load() {
+    try {
+      const evs = await (await fetch(QUOTER + '/demo/events')).json();
+      document.getElementById('grid').innerHTML = evs.map((e) => `
+        <a class="card" data-event-slug="${e.slug}" href="#/event/${e.slug}" style="color:inherit;text-decoration:none">
+          <h3>${e.title}</h3>
+          ${e.markets.map((m) => `<div class="row"><span>${m.groupItemTitle || (e.markets.length > 1 ? m.question : 'Outcome')}</span>
+            <span class="p"><b class="y">Yes ${fmt(m.mid[0])}</b><b class="n">No ${fmt(m.mid[1])}</b></span></div>`).join('')}
+          <div class="meta">Resolves Dec 31, 2026${e.negRisk ? ' · one winner' : ''}</div>
+        </a>`).join('');
+    } catch (err) {
+      document.getElementById('grid').innerHTML = `<div class="err">Can't reach the quoter at ${QUOTER}. Start it with <code>npm run demo</code> in /quoter.</div>`;
+    }
+  }
+  load(); setInterval(load, 15000);
+</script>
+<script>
+  // Local-only dev wallet: ?devwallet=1 routes wallet calls to an unlocked anvil account,
+  // so the full flow can be tested without MetaMask. Never used on a real venue.
+  (function () {
+    const qs = new URLSearchParams(location.search);
+    if (!qs.get('devwallet')) return;
+    const RPC = qs.get('rpc') || 'http://127.0.0.1:8545';
+    const ACCOUNT = qs.get('devwallet').startsWith('0x') ? qs.get('devwallet') : '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
+    let id = 0;
+    const rpc = async (method, params) => {
+      const r = await (await fetch(RPC, { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: ++id, method, params }) })).json();
+      if (r.error) throw Object.assign(new Error(r.error.message), { code: r.error.code });
+      return r.result;
+    };
+    window.ethereum = {
+      isDevWallet: true,
+      on() {},
+      async request({ method, params = [] }) {
+        if (method === 'eth_requestAccounts' || method === 'eth_accounts') return [ACCOUNT];
+        if (method === 'wallet_switchEthereumChain' || method === 'wallet_addEthereumChain') return null;
+        return rpc(method, params);
+      },
+    };
+  })();
+</script>
+</body>
+</html>
