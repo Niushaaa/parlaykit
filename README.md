@@ -184,6 +184,7 @@ Adding a venue means one adapter in `extension/adapters.js` (find slugs on the p
 - **Trusted quoter.** Prices come from a signed off-chain quote. The engine re-prices and enforces bounds on-chain, but a compromised signer could quote stale prices within those bounds. Next steps: multiple signers, a price-deviation check against an on-chain TWAP, and a signer rotation timelock.
 - **Independence pricing.** Correlated legs across *different* events (e.g. two markets that depend on the same match) are still priced as independent. The house edge partly covers this. ParlayMarket pricing is the real fix.
 - **Admin powers.** The owner can change parameters, rotate the signer and `voidParlay` (refund) cancelled markets. All of this should move to a timelock or multisig.
+- **LP timing.** Between a market resolving and someone calling `settle()`, an LP could withdraw ahead of a known win, or deposit ahead of a known loss. Mitigations: a keeper that settles on resolution, a withdrawal cooldown, or marking resolved legs to market in `totalAssets()`.
 - **No hedging.** The vault carries the risk directly. A natural extension is to hedge large parlays by buying legs on the venue.
 - Testnet only, unaudited. Parlay products may be regulated as gambling in many jurisdictions.
 
