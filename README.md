@@ -175,7 +175,6 @@ cd quoter && npm run e2e          # against a running local stack: LP deposit ->
 |---|---|
 | polymarket.com | Event pages and listing pages. Every `/event/<slug>` visible on screen becomes a candidate leg |
 | Demo venue (`127.0.0.1`) | Full flow, fictional markets |
-| 1inch | Adapter stub. We couldn't confirm a public 1inch prediction-market UI at build time. If its markets are CTF/Polymarket-backed, only the DOM selectors in `extension/adapters.js` need to change |
 
 Adding a venue means one adapter in `extension/adapters.js` (find slugs on the page) plus one source in `quoter/src/sources/` (slug → markets with conditionIds and prices).
 
@@ -185,3 +184,38 @@ Adding a venue means one adapter in `extension/adapters.js` (find slugs on the p
 - **Admin powers.** The owner can change parameters, rotate the signer and `voidParlay` (refund) cancelled markets. All of this should move to a timelock or multisig.
 - **LP timing.** Handle LP withdrawals in case of market resolution disputes on the leg markets.
 - **No hedging.** The vault carries the risk directly. A natural extension is to hedge large parlays by buying legs on the venue.
+
+## CROPS
+
+ParlayKit is designed against the Ethereum Foundation's CROPS properties: **C**ensorship resistant, **O**pen source, **P**rivate, **S**ecure. **Our lead property is censorship resistance:** once a parlay exists, nobody — including us — can stop it from paying out.
+
+### C — Censorship resistant (lead property)
+
+- **Permissionless settlement.** `settle(id)` (`contracts/src/ParlayEngine.sol`) can be called by anyone. Payouts go to whoever holds the ticket, not to an account we control.
+- **Resolution from the market's own on-chain data.** Outcomes are read from the Conditional Tokens payout vector the venue itself pays out from (`payoutNumerators` / `payoutDenominator`). There is no ParlayKit oracle to censor or bribe. On Polygon mainnet this is Polymarket's own CTF contract.
+- **Positions are bearer assets.** Each parlay is an ERC-721 ticket that can be transferred or sold without our involvement.
+- **LPs exit without permission.** Vault withdrawals are plain ERC-4626 calls. The only limit is the on-chain `lockedPayout` reserve that guarantees winners get paid, and no one can override it.
+- **What survives if we go offline:** if the quoter, the extension and our infrastructure all disappear, every open parlay still settles and pays, and every LP can still withdraw by calling the contracts directly (e.g. with `cast`).
+- **Honest gap:** *opening* a new parlay needs a signed quote from the quoter, so a quoter outage pauses new parlays (never payouts). v2 replaces the single quoter with signed prices from a decentralized oracle network (Chainlink CRE) and multiple signers.
+
+### O — Open source
+
+- MIT-licensed: contracts, quoter, extension and demo venue (`LICENSE`).
+- The extension is unbundled, dependency-free vanilla JS. What you load unpacked is exactly the source in `extension/`. There is no build step that could hide code.
+- Anyone can run their own quoter (`quoter/`) and point the extension at it from the popup settings.
+
+### P — Private
+
+- **No trackers or analytics.** The extension and demo page contain no analytics, telemetry or third-party scripts. Its only network calls go to the quoter URL the user configures and to the user's own wallet.
+- **Keys stay on the user's device.** Transactions are signed by the user's own wallet through a `postMessage` bridge (`extension/inpage.js`). The extension never sees or stores keys.
+- **Local state only.** The parlay slip is kept in `chrome.storage.local` on the user's machine. Nothing is stored server-side except a public cache of market names.
+- **Honest gap:** the quoter sees which legs a user prices, and RPC providers can link chain reads to the user's IP. v2 routes reads through Anon-RPC and lets users run the quoter locally (it already runs on `127.0.0.1` by default).
+
+### S — Secure
+
+- **Signed, bound, short-lived quotes.** EIP-712 quotes are bound to the buyer, single-use (nonce), and expire after 90 seconds.
+- **On-chain re-pricing.** The contract recomputes every parlay's price from the signed leg prices and rejects legs outside 2–98¢, duplicate markets and already-resolved markets.
+- **Solvency by construction.** Net risk per parlay is capped at 5% of free liquidity and reserved payouts at 80% of the vault. Withdrawals can never touch money reserved for winners.
+- **No-surprise transactions.** The quoter dry-runs every transaction with `eth_call` before the user signs it.
+- **Tested.** 14 Foundry tests (including fuzzing) cover pricing, forged and replayed signatures, risk limits, settlement edge cases and vault caps.
+- **Honest gap:** unaudited. Owner powers (parameters, signer rotation, `voidParlay`) should move behind a timelock or multisig before mainnet.

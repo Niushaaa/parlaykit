@@ -15,13 +15,13 @@
   ],
   "content_scripts": [
     {
-      "matches": ["https://polymarket.com/*", "https://*.polymarket.com/*", "https://1inch.io/*", "https://*.1inch.io/*", "https://1inch.com/*", "https://*.1inch.com/*", "http://127.0.0.1/*", "http://localhost/*"],
+      "matches": ["https://polymarket.com/*", "https://*.polymarket.com/*", "http://127.0.0.1/*", "http://localhost/*"],
       "js": ["inpage.js"],
       "world": "MAIN",
       "run_at": "document_start"
     },
     {
-      "matches": ["https://polymarket.com/*", "https://*.polymarket.com/*", "https://1inch.io/*", "https://*.1inch.io/*", "https://1inch.com/*", "https://*.1inch.com/*", "http://127.0.0.1/*", "http://localhost/*"],
+      "matches": ["https://polymarket.com/*", "https://*.polymarket.com/*", "http://127.0.0.1/*", "http://localhost/*"],
       "js": ["adapters.js", "content.js"],
       "run_at": "document_idle"
     }
